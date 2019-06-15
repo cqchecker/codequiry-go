@@ -17,11 +17,11 @@ https://codequiry.com/usage/api
 
 ## Installation
 ```
-go get -u "github.com/FILL_THIS"
+go get -u "github.com/cqchecker/codequiry-go"
 ```
 #### Import it with
 ```
-import "github.com/zhouhui8915/go-socket.io-client"
+import "github.com/cqchecker/codequiry-go"
 ```
 
 #### Setting your API Key
