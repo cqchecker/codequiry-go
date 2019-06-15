@@ -21,9 +21,9 @@ const apiUploadUrl = "https://codequiry.com/api/v1/check/upload"
 const socketsBaseUrl = "https://api.codequiry.com/"
 
 var (
-    ErrServer                  = errors.New("unexpected error when making a request to the API")
-    ErrSocketConnection        = errors.New("there was an error when trying to establish a socket connection")
-    ErrJobCheck                = errors.New("error when trying to check the job status")
+    ErrServer           = errors.New("unexpected error when making a request to the API")
+    ErrSocketConnection = errors.New("there was an error when trying to establish a socket connection")
+    ErrJobCheck         = errors.New("error when trying to check the job status")
 )
 
 type Codequiry struct {
@@ -31,129 +31,129 @@ type Codequiry struct {
 }
 
 type Account struct {
-    User                    string
-    Email                   string
-    PeerChecksRemaining     string                 	`json:"peer_checks_remaining"`
-    ProChecksRemaining      int                    	`json:"pro_checks_remaining"`
-    Submissions             int
+    User                string
+    Email               string
+    PeerChecksRemaining string `json:"peer_checks_remaining"`
+    ProChecksRemaining  int    `json:"pro_checks_remaining"`
+    Submissions         int
 }
 
 type Check struct {
-    Id                      int
-    Name                    string
-    CreatedAt               date                	`json:"created_at"`
-    UpdatedAt               date                	`json:"updated_at"`
-    StatusId                int                     `json:"status_id"`
-    JobId                   int                     `json:"job_id"`
+    Id        int
+    Name      string
+    CreatedAt date `json:"created_at"`
+    UpdatedAt date `json:"updated_at"`
+    StatusId  int  `json:"status_id"`
+    JobId     int  `json:"job_id"`
 }
 
 type CheckStatusInfo struct {
-    Check                   Check
-    Status                  string
-    DBCheck                 bool
-    WebCheck                bool
-    SubmissionCount         int                     `json:"submission_count"`
-    DashUrl                 string
+    Check           Check
+    Status          string
+    DBCheck         bool
+    WebCheck        bool
+    SubmissionCount int `json:"submission_count"`
+    DashUrl         string
 }
 
 type Submission struct {
-    Id                      int
-    Filename                string
-    StatusId                int                    	`json:"status_id"`
-    CreatedAt               date                	`json:"created_at"`
-    UpdatedAt               date                	`json:"updated_at"`
-    Result1                 float32
-    Result2                 float32
-    Result3                 float32
-    TotalResult             float32
-    SubmissionResults       []SubmissionResult    	`json:"submission_results"`
+    Id                int
+    Filename          string
+    StatusId          int  `json:"status_id"`
+    CreatedAt         date `json:"created_at"`
+    UpdatedAt         date `json:"updated_at"`
+    Result1           float32
+    Result2           float32
+    Result3           float32
+    TotalResult       float32
+    SubmissionResults []SubmissionResult `json:"submission_results"`
 }
 
 type SubmissionResult struct {
-    Id                      int
-    SubmissionId            int                     `json:"submission_id"`
-    SubmissionIdCompared    int                    	`json:"submission_id_compared"`
-    Score                   float32
-    CreatedAt               date                	`json:"created_at"`
-    UpdatedAt               date                	`json:"updated_at"`
+    Id                   int
+    SubmissionId         int `json:"submission_id"`
+    SubmissionIdCompared int `json:"submission_id_compared"`
+    Score                float32
+    CreatedAt            date `json:"created_at"`
+    UpdatedAt            date `json:"updated_at"`
 }
 
 type Overview struct {
-    OverviewURL             string
-    Submissions             []Submission
-    bardata                 []interface{}
+    OverviewURL string
+    Submissions []Submission
+    bardata     []interface{}
 }
 
 type RelatedFile struct {
-    ID                      int
-    SubmissionID            int                 	`json:"submission_id"`
-    Filedir                 string
-    Content                 string
-    CreatedAt               date                 	`json:"created_at"`
-    UpdatedAt               date                 	`json:"updated_at"`
-    LanguageID              int                 	`json:"language_id"`
+    ID           int
+    SubmissionID int `json:"submission_id"`
+    Filedir      string
+    Content      string
+    CreatedAt    date `json:"created_at"`
+    UpdatedAt    date `json:"updated_at"`
+    LanguageID   int  `json:"language_id"`
 }
 
 type PeerMatch struct {
-    ID                      int
-    SubmissionID            int                 	`json:"submission_id"`
-    SubmissionIDMatched     int                 	`json:"submission_id_matched"`
-    Similarity              string
-    MatchedSimilarity       string              	`json:"matched_similarity"`
-    File                    string
-    FileMatched             string              	`json:"file_matched"`
-    LineStart               int                 	`json:"line_start"`
-    LineEnd                 int                 	`json:"line_end"`
-    Tokens                  int
-    CreatedAt               interface{}         	`json:"created_at"`
-    UpdatedAt               interface{}         	`json:"updated_at"`
-    LineMatchedStart        int                 	`json:"line_matched_start"`
-    LineMatchedEnd          int                 	`json:"line_matched_end"`
-    MatchType               int                 	`json:"match_type"`
+    ID                  int
+    SubmissionID        int `json:"submission_id"`
+    SubmissionIDMatched int `json:"submission_id_matched"`
+    Similarity          string
+    MatchedSimilarity   string `json:"matched_similarity"`
+    File                string
+    FileMatched         string `json:"file_matched"`
+    LineStart           int    `json:"line_start"`
+    LineEnd             int    `json:"line_end"`
+    Tokens              int
+    CreatedAt           interface{} `json:"created_at"`
+    UpdatedAt           interface{} `json:"updated_at"`
+    LineMatchedStart    int         `json:"line_matched_start"`
+    LineMatchedEnd      int         `json:"line_matched_end"`
+    MatchType           int         `json:"match_type"`
 }
 
 type SubmissionResults struct {
-    Submission              Submission
-    Avg                     float64
-    Max                     string
-    Min                     string
-    PeerMatches             []PeerMatch
-    OtherMatches            []interface{}			`json:"other_matches"`
-    RelatedSubmissions      []Submission        	`json:"related_submissions"`
-    RelatedFiles            []RelatedFile         	`json:"related_files"`
+    Submission         Submission
+    Avg                float64
+    Max                string
+    Min                string
+    PeerMatches        []PeerMatch
+    OtherMatches       []interface{} `json:"other_matches"`
+    RelatedSubmissions []Submission  `json:"related_submissions"`
+    RelatedFiles       []RelatedFile `json:"related_files"`
 }
 
 type AssignmentStatus struct {
-    ID                    	int
-    Status                  string
-    Icon                    interface{}
-    Color                   string
-    CreatedAt               date                  	`json:"created_at"`
-    UpdatedAt               date                  	`json:"updated_at"`
+    ID        int
+    Status    string
+    Icon      interface{}
+    Color     string
+    CreatedAt date `json:"created_at"`
+    UpdatedAt date `json:"updated_at"`
 }
 
 type UploadData struct {
-    ID                    	int
-    Filename                string
-    StatusID                int                  	`json:"status_id"`
-    CreatedAt               string               	`json:"created_at"`
-    UpdatedAt               string               	`json:"updated_at"`
-    Result1                 string
-    Result2                 string
-    Result3                 string
-    TotalResult             string               	`json:"total_result"`
-    ModifyUpdatedAt         string               	`json:"modify_updated_at"`
-    AssignmentStatuses      []AssignmentStatus
-    File                    string
-    SubmissionCount         int                 	`json:"submission_count"`
-    Check                   Check
+    ID                 int
+    Filename           string
+    StatusID           int    `json:"status_id"`
+    CreatedAt          string `json:"created_at"`
+    UpdatedAt          string `json:"updated_at"`
+    Result1            string
+    Result2            string
+    Result3            string
+    TotalResult        string `json:"total_result"`
+    ModifyUpdatedAt    string `json:"modify_updated_at"`
+    AssignmentStatuses []AssignmentStatus
+    File               string
+    SubmissionCount    int `json:"submission_count"`
+    Check              Check
 }
 
 type APIError struct {
-    msg                     string
+    msg string
 }
 
-func (e* APIError) Error() string {
+func (e *APIError) Error() string {
     return fmt.Sprintf(e.msg)
 }
 
@@ -308,7 +308,7 @@ func (c Codequiry) UploadFile(checkId string, filePath string) ([]UploadData, er
 func (c Codequiry) post(url string, data interface{}, header http.Header) (string, error) {
     var content string
     if data != nil && reflect.TypeOf(data).Kind() == reflect.Map {
-        jsonStr, _  := json.Marshal(data)
+        jsonStr, _ := json.Marshal(data)
         content = string(jsonStr)
     } else {
         if bytesBuff, ok := data.(*bytes.Buffer); ok {
@@ -372,5 +372,5 @@ func main() {
     var cq = Codequiry{ApiKey: ""}
 
     account, err := cq.Account()
-    fmt.Printf("%+v\n%+v\n",account, err)
+    fmt.Printf("%+v\n%+v\n", account, err)
 }
