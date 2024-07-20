@@ -6,14 +6,16 @@ import (
     "fmt"
     "github.com/pkg/errors"
     "github.com/zhouhui8915/go-socket.io-client"
+    "io"
+    "net/http"
     "io/ioutil"
     "mime/multipart"
-    "net/http"
     "os"
     "reflect"
     "regexp"
     "strings"
     "time"
+    "path/filepath"
 )
 
 const apiBaseUrl = "https://codequiry.com/api/v1/"
@@ -47,13 +49,20 @@ type Check struct {
     JobId     int  `json:"job_id"`
 }
 
+type CheckStatus struct {
+    Check           Check
+    Status          string
+    SubmissionCount int `json:"submission_count"`
+    Submissions      []Submission
+}
+
 type CheckStatusInfo struct {
     Check           Check
     Status          string
     DBCheck         bool
     WebCheck        bool
     SubmissionCount int `json:"submission_count"`
-    DashUrl         string
+    CheckURL        string `json:"checkURL"`
 }
 
 type Submission struct {
@@ -189,13 +198,16 @@ func (c Codequiry) Checks() ([]Check, error) {
     return checks, err
 }
 
-func (c Codequiry) CreateCheck(checkName string, lang string) ([]Check, error) {
+func (c Codequiry) CreateCheck(checkName string, lang string) (*Check, error) {
     params := make(map[string]interface{})
     params["name"] = checkName
     params["language"] = lang
 
     jsonStr, err := c.post("check/create", params, nil)
-    var checks []Check
+    if err != nil {
+        return nil, err
+    }
+    var checks *Check
     err = unmarshal(jsonStr, &checks)
 
     return checks, err
@@ -249,12 +261,12 @@ func (c Codequiry) StartCheck(checkId string) (CheckStatusInfo, error) {
     return checkStatus, err
 }
 
-func (c Codequiry) GetCheck(checkId string) (Check, error) {
+func (c Codequiry) GetCheck(checkId string) (CheckStatus, error) {
     params := make(map[string]interface{})
     params["check_id"] = checkId
 
     jsonStr, err := c.post("check/get", params, nil)
-    var check Check
+    var check CheckStatus
     err = unmarshal(jsonStr, &check)
 
     return check, err
@@ -283,26 +295,51 @@ func (c Codequiry) GetResults(checkId string, sid string) (SubmissionResults, er
     return results, err
 }
 
-func (c Codequiry) UploadFile(checkId string, filePath string) ([]UploadData, error) {
-    file, _ := os.Open(filePath)
-    defer file.Close()
-
-    body := &bytes.Buffer{}
-    writer := multipart.NewWriter(body)
-    fileContents, _ := ioutil.ReadFile(filePath)
-    _ = writer.WriteField("file", string(fileContents))
-
-    err := writer.WriteField("check_id", checkId)
-    //_, err = io.Copy(part, file)
-    err = writer.Close()
-
-    header := c.GetBaseHeaders()
-    header.Set("Content-Type", writer.FormDataContentType())
-    jsonStr, _ := c.post(apiUploadUrl, body, header)
-    var uploadData []UploadData
-    err = unmarshal(jsonStr, &uploadData)
-
-    return uploadData, err
+func (c Codequiry) UploadFile(checkId string, filePath string) (*UploadData, error) {
+        file, err := os.Open(filePath)
+        if err != nil {
+            return nil, err
+        }
+        defer file.Close()
+    
+        body := &bytes.Buffer{}
+        writer := multipart.NewWriter(body)
+    
+        part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+        if err != nil {
+            return nil, err
+        }
+    
+        _, err = io.Copy(part, file)
+        if err != nil {
+            return nil, err
+        }
+    
+        err = writer.WriteField("check_id", checkId)
+        if err != nil {
+            return nil, err
+        }
+    
+        err = writer.Close()
+        if err != nil {
+            return nil, err
+        }
+    
+        headers := c.GetBaseHeaders()
+        headers.Set("Content-Type", writer.FormDataContentType())
+    
+        jsonStr, err := c.post(apiUploadUrl, body, headers)
+        if err != nil {
+            return nil, err
+        }
+    
+        var uploadData *UploadData
+        err = unmarshal(jsonStr, &uploadData)
+        if err != nil {
+            return nil, err
+        }
+    
+        return uploadData, nil
 }
 
 func (c Codequiry) post(url string, data interface{}, header http.Header) (string, error) {
@@ -322,7 +359,7 @@ func (c Codequiry) post(url string, data interface{}, header http.Header) (strin
         reqUrl = apiBaseUrl + url
     }
 
-    req, _ := http.NewRequest("POST", reqUrl, strings.NewReader(content))
+    req, err := http.NewRequest("POST", reqUrl, strings.NewReader(content))
     if header == nil {
         header = c.GetBaseHeaders()
     }
@@ -330,14 +367,16 @@ func (c Codequiry) post(url string, data interface{}, header http.Header) (strin
 
     client := &http.Client{}
     resp, err := client.Do(req)
+    if err != nil {
+        return "", fmt.Errorf("HTTP request failed: %v", err)
+    }
 
     if resp != nil {
-        bodyBytes, _ := ioutil.ReadAll(resp.Body)
-        if err != nil {
-            panic(err)
-        }
-
         defer resp.Body.Close()
+        bodyBytes, err := ioutil.ReadAll(resp.Body)
+        if err != nil {
+            return "", fmt.Errorf("error reading response body: %v", err)
+        }
         return string(bodyBytes), nil
     } else {
         return "", nil
@@ -373,4 +412,25 @@ func main() {
 
     account, err := cq.Account()
     fmt.Printf("%+v\n%+v\n", account, err)
+
+    checks, err := cq.Checks()
+    fmt.Printf("%+v\n %+v\n",checks, err)
+
+    check, err := cq.CreateCheck("NewCheck", "39")
+    fmt.Printf("%+v\n %+v\n",check, err)
+
+    res, err := cq.UploadFile("95555", "./test.zip")
+    fmt.Printf("%+v\n %+v\n",res, err)
+
+    status, err := cq.StartCheck("95555")
+    fmt.Printf("%+v\n %+v\n",status, err)
+
+    check, err := cq.GetCheck("95555")
+    fmt.Printf("%+v\n %+v\n",check, err)
+
+    overview, err := cq.GetOverview("95555")
+    fmt.Printf("%+v\n %+v\n",overview, err)
+
+    results, err := cq.GetResults("95555", "220709")
+    fmt.Printf("%+v\n %+v\n",results, err)
 }
