@@ -40,9 +40,9 @@ checks, err := cq.Checks()
 fmt.Printf("%+v\n %+v\n",checks, err)
 ```
 #### Creating checks (specify name and programming language)
-Examples: java, c-cpp, python, csharp, txt
+Examples: javascript, java, c-cpp, python, csharp, txt
 ```go
-check, err := cq.CreateCheck("CheckNameHere", "java")
+check, err := cq.CreateCheck("CheckNameHere", "39")
 fmt.Printf("%+v\n %+v\n",check, err)
 
 ```
@@ -53,22 +53,22 @@ fmt.Printf("%+v\n %+v\n",res, err)
 ```
 #### Starting a check (specify check_id and if running database check or web check) 
 ```go
-status, err := cq.startCheck("CHECK_ID")
+status, err := cq.StartCheck("CHECK_ID")
 fmt.Printf("%+v\n %+v\n",status, err)
 ```
 #### Getting a check information/status
 ```go
-check, err := cq.getCheck("CHECK_ID")
+check, err := cq.GetCheck("CHECK_ID")
 fmt.Printf("%+v\n %+v\n",check, err)
 ```
 #### Getting results overview
 ```go
-overview, err := cq.getOverview("CHECK_ID")
+overview, err := cq.GetOverview("CHECK_ID")
 fmt.Printf("%+v\n %+v\n",overview, err)
 ```
 #### Getting specific results of a submission
 ```go
-results, err := cq.getResults("CHECK_ID", "SUBMISSION_ID")
+results, err := cq.GetResults("CHECK_ID", "SUBMISSION_ID")
 fmt.Printf("%+v\n %+v\n",results, err)
 ```
 ## Realtime checking progress - SocketIO
@@ -78,5 +78,5 @@ callback := func(data string) {
     print("Update: " + data)
 }
 
-cq.checkListen(1, callback)
+cq.CheckListen(1, callback)
 ```
